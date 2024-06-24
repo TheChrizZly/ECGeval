@@ -3,48 +3,156 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
+from scipy.fft import fft, fftfreq
+from src.patient import Patient
 
 # Parameters
-samplingRatePre = 50  # In Hz
-samplingRateDuring = 50  # In Hz
-# import CSV as dataframe
-rawdata = pd.read_csv('data/christianTW.csv', sep=';', decimal=',')
 
-# Extract the ECG signal
-ecg_signal = rawdata["Lauf 1: Potential (mV)"].values
-cleanECG = nk.ecg_clean(ecg_signal, sampling_rate=samplingRatePre)
+christian = Patient('christian', 40, 90, "HO34N")
+alice = Patient('alice', 50, 120, "KNP19")
+maxi = Patient('max', 60, 100, "SDF32")
+marina = Patient('marina', 40, 120, "KJH23")
+sarah = Patient('sarah', 50, 120, "Q27DW")
+tim = Patient('tim', 40, 100, "LB411")
+patients = [christian, alice, maxi, marina, sarah, tim]
+handgemessene_hrT = [68, 84, 76, 76, 88, 60, 56, 88, 80, 68, 76, 56]
+hangemesse_hrM = [64, 84, 56, 88, 76, 64, 64, 72, 60, 80, 68, 56]
+# Plotting
+# compare average heart rate before and after exercise
+avgHRPre = [patient.avg_m_hr_pre for patient in patients]
+avgHRPost = [patient.avg_m_hr_post for patient in patients]
+patient_names = [patient.id for patient in patients]
+avgDiff = np.array(avgHRPost) - np.array(avgHRPre)
+avgDiff = avgDiff.tolist()
+data = pd.DataFrame({
+    'Patient': patient_names * 2,  # Duplicate patient IDs for before/after
+    'Heart Rate': avgHRPre + avgHRPost,  # Combine heart rates
+    'Condition': ['Before Exercise'] * len(patients) + ['After Exercise'] * len(patients)  # Add labels
+})
+plt.rcParams.update({'font.size': 22})
+# Plotting with Seaborn
+plt.figure(figsize=(10, 8))
+sns.lineplot(data=data, x='Patient', y='Heart Rate', hue='Condition', marker='o', palette=['skyblue', 'salmon'])  # Line plot with hues
 
-# Peak detection and basic analysis
-peaks, info = nk.ecg_peaks(cleanECG, sampling_rate=samplingRatePre)
-hrv = nk.hrv(peaks, sampling_rate=samplingRatePre)
+# Add labels and title
+plt.xlabel('Patient')
+plt.ylabel('Heart Rate (bpm)')
+plt.title('Average Heart Rate Before and After Exercise')
+plt.xticks(rotation=45)
 
-# Get heart rate
-heart_rate = nk.ecg_rate(peaks, sampling_rate=samplingRatePre)
-# Extract the numerical value of the heart rate from the array
-average_heart_rate = heart_rate[:].mean()
-peak_times = info['ECG_R_Peaks'] / samplingRatePre
-# Now you can use the f-string for formatting
-print(f"Average Heart Rate: {average_heart_rate:.2f} bpm")
+# Barplot
+dataBar = pd.DataFrame({
+    'Patient': patient_names,
+    'Heart Rate Difference': avgDiff,
+    'Condition': ['Trained', 'Untrained', 'Untrained', 'Trained', 'Untrained', 'Trained']
+})
+plt.figure(figsize=(10, 8))
+sns.barplot(data=dataBar, x='Patient', y='Heart Rate Difference', hue='Condition', palette=['skyblue', 'salmon'])
 
+plt.xlabel('Versuchsperson')
+plt.ylabel('Differenz in der Herzfrequenz (bpm)')
+plt.title('Differenz in der Herzfrequenz vor und nach der Progressiven Muskelentspannung')
+plt.xticks(rotation=45)
+plt.xticks(rotation=45, ha='right')  # Rotate x-axis labels for readability
+plt.ylim(-21, 8)
+plt.grid(axis='y', linestyle='--')    # Add horizontal grid
+for index, row in dataBar.iterrows():
+    plt.text(index, row['Heart Rate Difference'], round(row['Heart Rate Difference'],1), ha='center', va='bottom')
+plt.savefig('BarPlotMuskelentspannung.png', dpi=600)
 
-# Get time points of R-peaks
-r_peaks_time = peaks['ECG_R_Peaks'] / samplingRatePre
+dataBarT = pd.DataFrame({
+    'Patient': patient_names,
+    'Heart Rate Difference': avgDiff,
+    'Condition': ['Trained', 'Untrained', 'Untrained', 'Trained', 'Untrained', 'Trained']
+})
+avgHRPreT = [patient.avg_t_hr_pre for patient in patients]
+avgHRPostT = [patient.avg_t_hr_post for patient in patients]
+patient_names = [patient.id for patient in patients]
+avgDiffT = np.array(avgHRPostT) - np.array(avgHRPreT)
+avgDiffT = avgDiffT.tolist()
+dataBarT = pd.DataFrame({
+    'Patient': patient_names,
+    'Heart Rate Difference': avgDiffT,
+    'Condition': ['Trained', 'Untrained', 'Untrained', 'Trained', 'Untrained', 'Trained']
+})
+plt.figure(figsize=(10, 8))
 
-# Plot the cleaned ECG signal and the detected R-peaks
-#nk.events_plot(r_peaks_time, cleanECG)
+sns.barplot(data=dataBarT, x='Patient', y='Heart Rate Difference', hue='Condition', palette=['skyblue', 'salmon'])
 
-# Plot HRV analysis (you can explore different HRV metrics)
-#nk.hrv_plot(hrv)
+plt.xlabel('Versuchsperson')
+plt.ylabel('Differenz in der Herzfrequenz (bpm)')
+plt.title('Differenz in der Herzfrequenz vor und nach der Traumreise')
+plt.xticks(rotation=45)
+plt.xticks(rotation=45, ha='right')  # Rotate x-axis labels for readability
+plt.ylim(-21, 8)
+plt.grid(axis='y', linestyle='--')    # Add horizontal grid
+# Add value labels to the bars
+for index, row in dataBarT.iterrows():
+    plt.text(index, row['Heart Rate Difference'], round(row['Heart Rate Difference'],1), ha='center', va='bottom')
+plt.savefig('BarPlotTraumreise.png', dpi=600)
 
-HeartRateData = pd.data = {'Time (seconds)': peak_times, 'Average Heart Rate (bpm)': heart_rate}
-heartrate = pd.DataFrame(HeartRateData)
-plt.figure()
-sns.lineplot(x='Lauf 1: Zeit (min)', y='Lauf 1: Potential (mV)', data=rawdata, marker='x')
+# BarPlot Handgemessen
+avgHRPreHT = handgemessene_hrT[:6]
+avgHRPostHT = handgemessene_hrT[-6:]
+patient_names = [patient.id for patient in patients]
+avgDiffHT = np.array(avgHRPostHT) - np.array(avgHRPreHT)
+avgDiffHT = avgDiffHT.tolist()
+dataBarHT = pd.DataFrame({
+    'Patient': patient_names,
+    'Heart Rate Difference': avgDiffHT,
+    'Condition': ['Trained', 'Untrained', 'Untrained', 'Trained', 'Untrained', 'Trained']
+})
+plt.figure(figsize=(10, 8))
 
-plt.figure()
-sns.set_theme(style="whitegrid")
-sns.lineplot(x='Time (seconds)', y='Average Heart Rate (bpm)', data=heartrate, marker='o')
-plt.title('Average Heart Rate Over Time')
-plt.xlabel('Time (seconds)')
-plt.ylabel('Average Heart Rate (bpm)')
+sns.barplot(data=dataBarHT, x='Patient', y='Heart Rate Difference', hue='Condition', palette=['skyblue', 'salmon'])
+
+plt.xlabel('Versuchsperson')
+plt.ylabel('Differenz in der Herzfrequenz (bpm)')
+plt.title('Differenz in der handgemessenen Herzfrequenz vor und nach der Traumreise')
+plt.xticks(rotation=45)
+plt.xticks(rotation=45, ha='right')  # Rotate x-axis labels for readability
+plt.ylim(-12, 5)
+plt.grid(axis='y', linestyle='--')    # Add horizontal grid
+# Add value labels to the bars
+for index, row in dataBarHT.iterrows():
+    plt.text(index, row['Heart Rate Difference'], round(row['Heart Rate Difference'],1), ha='center', va='bottom')
+plt.savefig('BarPlotTraumreise_Handgemessen.png', dpi=600)
+
+# BarPlot Handgemessen
+avgHRPreHM = hangemesse_hrM[:6]
+avgHRPostHM = hangemesse_hrM[-6:]
+patient_names = [patient.id for patient in patients]
+avgDiffHM = np.array(avgHRPostHM) - np.array(avgHRPreHM)
+avgDiffHM = avgDiffHM.tolist()
+dataBarHM = pd.DataFrame({
+    'Patient': patient_names,
+    'Heart Rate Difference': avgDiffHM,
+    'Condition': ['Trained', 'Untrained', 'Untrained', 'Trained', 'Untrained', 'Trained']
+})
+plt.figure(figsize=(10, 8))
+
+sns.barplot(data=dataBarHM, x='Patient', y='Heart Rate Difference', hue='Condition', palette=['skyblue', 'salmon'])
+
+plt.xlabel('Versuchsperson')
+plt.ylabel('Differenz in der Herzfrequenz (bpm)')
+plt.title('Differenz in der handgemessenen Herzfrequenz vor und nach der Progressiven Muskelentspannung')
+plt.xticks(rotation=45)
+plt.xticks(rotation=45, ha='right')  # Rotate x-axis labels for readability
+plt.ylim(-12, 5)
+plt.grid(axis='y', linestyle='--')    # Add horizontal grid
+# Add value labels to the bars
+for index, row in dataBarHM.iterrows():
+    plt.text(index, row['Heart Rate Difference'], round(row['Heart Rate Difference'],1), ha='center', va='bottom')
+plt.savefig('BarPlotProgMus_Handgemessen.png', dpi=600)
+
 plt.show()
+
+#Print std dev for all patients
+print('Standard Deviation of Heart Rate for all patients:')
+stdDevMean = 0
+for patient in patients:
+    stdDevMean = stdDevMean + patient.std_m_hr + patient.std_t_hr
+    print(patient.name + ' M: ' + str(patient.std_m_hr))
+    print(patient.name + ' T: ' + str(patient.std_t_hr))
+print('Mean Std: ' + str(stdDevMean/(len(patients)*2)))
+
