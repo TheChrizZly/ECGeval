@@ -29,7 +29,7 @@ data = pd.DataFrame({
     'Heart Rate': avgHRPre + avgHRPost,  # Combine heart rates
     'Condition': ['Before Exercise'] * len(patients) + ['After Exercise'] * len(patients)  # Add labels
 })
-plt.rcParams.update({'font.size': 22})
+plt.rcParams.update({'font.size': 30})
 # Plotting with Seaborn
 plt.figure(figsize=(10, 8))
 sns.lineplot(data=data, x='Patient', y='Heart Rate', hue='Condition', marker='o', palette=['skyblue', 'salmon'])  # Line plot with hues
