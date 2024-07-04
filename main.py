@@ -8,12 +8,12 @@ from src.patient import Patient
 
 # Parameters
 
-christian = Patient('christian', 40, 90, "HO34N")
-alice = Patient('alice', 50, 120, "KNP19")
-maxi = Patient('max', 60, 100, "SDF32")
-marina = Patient('marina', 40, 120, "KJH23")
-sarah = Patient('sarah', 50, 120, "Q27DW")
-tim = Patient('tim', 40, 100, "LB411")
+christian = Patient('christian', 40, 90, "P1")
+alice = Patient('alice', 50, 120, "P2")
+maxi = Patient('max', 60, 100, "P3")
+marina = Patient('marina', 40, 120, "P4")
+sarah = Patient('sarah', 50, 120, "P5")
+tim = Patient('tim', 40, 100, "P6")
 patients = [christian, alice, maxi, marina, sarah, tim]
 handgemessene_hrT = [68, 84, 76, 76, 88, 60, 56, 88, 80, 68, 76, 56]
 hangemesse_hrM = [64, 84, 56, 88, 76, 64, 64, 72, 60, 80, 68, 56]
@@ -29,7 +29,7 @@ data = pd.DataFrame({
     'Heart Rate': avgHRPre + avgHRPost,  # Combine heart rates
     'Condition': ['Before Exercise'] * len(patients) + ['After Exercise'] * len(patients)  # Add labels
 })
-plt.rcParams.update({'font.size': 30})
+plt.rcParams.update({'font.size': 20})
 # Plotting with Seaborn
 plt.figure(figsize=(10, 8))
 sns.lineplot(data=data, x='Patient', y='Heart Rate', hue='Condition', marker='o', palette=['skyblue', 'salmon'])  # Line plot with hues
@@ -50,11 +50,11 @@ plt.figure(figsize=(10, 8))
 sns.barplot(data=dataBar, x='Patient', y='Heart Rate Difference', hue='Condition', palette=['skyblue', 'salmon'])
 
 plt.xlabel('Versuchsperson')
-plt.ylabel('Differenz in der Herzfrequenz (bpm)')
-plt.title('Differenz in der Herzfrequenz vor und nach der Progressiven Muskelentspannung')
+plt.ylabel('Differenz in der Herzfrequenz (%)')
+plt.title('Delta HR vor/nach der Prog. Muskelentspannung')
 plt.xticks(rotation=45)
 plt.xticks(rotation=45, ha='right')  # Rotate x-axis labels for readability
-plt.ylim(-21, 8)
+plt.ylim(-25, 15)
 plt.grid(axis='y', linestyle='--')    # Add horizontal grid
 for index, row in dataBar.iterrows():
     plt.text(index, row['Heart Rate Difference'], round(row['Heart Rate Difference'],1), ha='center', va='bottom')
@@ -68,7 +68,7 @@ dataBarT = pd.DataFrame({
 avgHRPreT = [patient.avg_t_hr_pre for patient in patients]
 avgHRPostT = [patient.avg_t_hr_post for patient in patients]
 patient_names = [patient.id for patient in patients]
-avgDiffT = np.array(avgHRPostT) - np.array(avgHRPreT)
+avgDiffT = (np.array(avgHRPostT) - np.array(avgHRPreT))/avgHRPreT*100
 avgDiffT = avgDiffT.tolist()
 dataBarT = pd.DataFrame({
     'Patient': patient_names,
@@ -80,11 +80,11 @@ plt.figure(figsize=(10, 8))
 sns.barplot(data=dataBarT, x='Patient', y='Heart Rate Difference', hue='Condition', palette=['skyblue', 'salmon'])
 
 plt.xlabel('Versuchsperson')
-plt.ylabel('Differenz in der Herzfrequenz (bpm)')
-plt.title('Differenz in der Herzfrequenz vor und nach der Traumreise')
+plt.ylabel('Differenz in der Herzfrequenz (%)')
+plt.title('Delta HR vor/nach der Traumreise')
 plt.xticks(rotation=45)
 plt.xticks(rotation=45, ha='right')  # Rotate x-axis labels for readability
-plt.ylim(-21, 8)
+plt.ylim(-25, 15)
 plt.grid(axis='y', linestyle='--')    # Add horizontal grid
 # Add value labels to the bars
 for index, row in dataBarT.iterrows():
@@ -95,7 +95,7 @@ plt.savefig('BarPlotTraumreise.png', dpi=600)
 avgHRPreHT = handgemessene_hrT[:6]
 avgHRPostHT = handgemessene_hrT[-6:]
 patient_names = [patient.id for patient in patients]
-avgDiffHT = np.array(avgHRPostHT) - np.array(avgHRPreHT)
+avgDiffHT = (np.array(avgHRPostHT) - np.array(avgHRPreHT))/avgHRPreHT*100
 avgDiffHT = avgDiffHT.tolist()
 dataBarHT = pd.DataFrame({
     'Patient': patient_names,
@@ -107,11 +107,11 @@ plt.figure(figsize=(10, 8))
 sns.barplot(data=dataBarHT, x='Patient', y='Heart Rate Difference', hue='Condition', palette=['skyblue', 'salmon'])
 
 plt.xlabel('Versuchsperson')
-plt.ylabel('Differenz in der Herzfrequenz (bpm)')
-plt.title('Differenz in der handgemessenen Herzfrequenz vor und nach der Traumreise')
+plt.ylabel('Differenz in der Herzfrequenz (%)')
+plt.title('Delta HR vor/nach der Traumreise (Hand)')
 plt.xticks(rotation=45)
 plt.xticks(rotation=45, ha='right')  # Rotate x-axis labels for readability
-plt.ylim(-12, 5)
+plt.ylim(-20, 10)
 plt.grid(axis='y', linestyle='--')    # Add horizontal grid
 # Add value labels to the bars
 for index, row in dataBarHT.iterrows():
@@ -122,7 +122,7 @@ plt.savefig('BarPlotTraumreise_Handgemessen.png', dpi=600)
 avgHRPreHM = hangemesse_hrM[:6]
 avgHRPostHM = hangemesse_hrM[-6:]
 patient_names = [patient.id for patient in patients]
-avgDiffHM = np.array(avgHRPostHM) - np.array(avgHRPreHM)
+avgDiffHM = (np.array(avgHRPostHM) - np.array(avgHRPreHM))/avgHRPreHM*100
 avgDiffHM = avgDiffHM.tolist()
 dataBarHM = pd.DataFrame({
     'Patient': patient_names,
@@ -134,11 +134,11 @@ plt.figure(figsize=(10, 8))
 sns.barplot(data=dataBarHM, x='Patient', y='Heart Rate Difference', hue='Condition', palette=['skyblue', 'salmon'])
 
 plt.xlabel('Versuchsperson')
-plt.ylabel('Differenz in der Herzfrequenz (bpm)')
-plt.title('Differenz in der handgemessenen Herzfrequenz vor und nach der Progressiven Muskelentspannung')
+plt.ylabel('Differenz in der Herzfrequenz (%)')
+plt.title('Delta HR vor/nach der Prog. Muskelentspannung (Hand)')
 plt.xticks(rotation=45)
 plt.xticks(rotation=45, ha='right')  # Rotate x-axis labels for readability
-plt.ylim(-12, 5)
+plt.ylim(-20, 10)
 plt.grid(axis='y', linestyle='--')    # Add horizontal grid
 # Add value labels to the bars
 for index, row in dataBarHM.iterrows():
